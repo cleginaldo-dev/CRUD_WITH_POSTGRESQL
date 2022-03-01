@@ -1,5 +1,3 @@
-import { createConnection } from "typeorm";
+import { app } from "./app";
 
-createConnection().then(() => {
-  import("./app");
-});
+app.listen(3333, () => console.log("server is running on port 3333!"));

@@ -1,10 +1,11 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { getRepository, Repository } from "typeorm";
 
-import { Categories } from "../../../../entities/Categories";
+import { Categories } from "../../entities/Categories";
 import {
   ICategoriesRepository,
   IListAllParams,
+  IListReturnData,
 } from "../ICategoriesRepository";
 import { ICreateCategoryDTO } from "./ICreateCategoryDTO";
 
@@ -22,12 +23,17 @@ class CategoriesRepository implements ICategoriesRepository {
   }
 
   async findById(id: string): Promise<Categories> {
-    const category = await this.ormRepository.findOne({ where: { id } });
+    const category = await this.ormRepository.findOne(id, {
+      relations: ["videos"],
+    });
     return category;
   }
 
   async findByName(name: string): Promise<Categories> {
-    const category = await this.ormRepository.findOne({ where: { name } });
+    const category = await this.ormRepository.findOne(
+      { name },
+      { relations: ["videos"] }
+    );
     return category;
   }
 
@@ -36,9 +42,10 @@ class CategoriesRepository implements ICategoriesRepository {
     return categoryCreated;
   }
 
-  async list(params?: IListAllParams): Promise<Categories[]> {
+  async list(params?: IListAllParams): Promise<IListReturnData> {
     const queryBuilder = this.ormRepository
       .createQueryBuilder("categories")
+      .leftJoinAndSelect("categories.videos", "videos")
       .orderBy("categories.name", "DESC");
 
     if (params) {
@@ -71,8 +78,9 @@ class CategoriesRepository implements ICategoriesRepository {
         });
       }
     }
-    const categories = await queryBuilder.getMany();
-    return categories;
+    const total = await queryBuilder.getCount();
+    const data = await queryBuilder.getMany();
+    return { total, data };
   }
 
   async delete(id: string): Promise<void> {

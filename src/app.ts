@@ -1,15 +1,25 @@
 import "reflect-metadata";
 import "express-async-errors";
 import express, { Request, Response, NextFunction } from "express";
+import "./database";
+import "./global/shared/container";
 
-import { AppError } from "./errors/AppError";
-import { router } from "./routes";
+import { AppError } from "./global/errors/AppError";
+import { categories } from "./routes/categories.routes";
+import { championshipRoutes } from "./routes/championships.routes";
+import { teamRoutes } from "./routes/teams.routes";
+import { usersRoutes } from "./routes/users.routes";
+import { videos } from "./routes/videos.routes";
 
 const app = express();
 
 app.use(express.json());
 
-app.use(router);
+app.use("/categories", categories);
+app.use("/videos", videos);
+app.use("/users", usersRoutes);
+app.use("/teams", teamRoutes);
+app.use("/championships", championshipRoutes);
 
 app.use(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -21,7 +31,5 @@ app.use(
     return response.status(500).json({ error: err.message });
   }
 );
-
-app.listen(3333, () => console.log("server is running on port 3333!"));
 
 export { app };
